@@ -14,7 +14,7 @@ contract BPHCSocial is ERC721URIStorage {
     
     struct Post {
         uint256 id;
-        string hash;
+        string content;
         uint256 likes;
         address payable author;
         string profile;
@@ -28,7 +28,7 @@ contract BPHCSocial is ERC721URIStorage {
     
     event PostCreated(
         uint256 id,
-        string hash,
+        string content,
         uint256 likes,
         address payable author,
         string profile,
@@ -37,7 +37,7 @@ contract BPHCSocial is ERC721URIStorage {
 
     event PostLiked(
         uint256 id,
-        string hash,
+        string content,
         uint256 likes,
         address payable author
     );
@@ -45,8 +45,8 @@ contract BPHCSocial is ERC721URIStorage {
     constructor() ERC721("BPHCSocial", "DAPP") {}
 
     function CreateProfile(string memory _name,string memory _image) external returns (uint256) {
-        tokenCount++;
         require(bytes(_name).length > 0);
+        tokenCount++;
         _safeMint(msg.sender, tokenCount);
         _setTokenURI(tokenCount, _name);
         setProfile(tokenCount);
@@ -60,16 +60,15 @@ contract BPHCSocial is ERC721URIStorage {
         profiles[msg.sender] = _id;
     }
 
-    function uploadPost(string memory _postHash,string memory _image) external {
-        require(balanceOf(msg.sender) > 0);
-        require(bytes(_postHash).length > 0||bytes(_image).length > 0);
+    function uploadPost(string memory _postcontent,string memory _image) external {
+        require(bytes(_postcontent).length > 0||bytes(_image).length > 0);
         postCount++;
         if (bytes(_image).length > 0)
-            {posts[postCount] = Post(postCount, _postHash, 0, payable(msg.sender),accounts[profiles[msg.sender]][0],_image);
-            emit PostCreated(postCount, _postHash, 0, payable(msg.sender),accounts[profiles[msg.sender]][0],_image);
+            {posts[postCount] = Post(postCount, _postcontent, 0, payable(msg.sender),accounts[profiles[msg.sender]][0],_image);
+            emit PostCreated(postCount, _postcontent, 0, payable(msg.sender),accounts[profiles[msg.sender]][0],_image);
             }
-        else{posts[postCount] = Post(postCount, _postHash, 0, payable(msg.sender),accounts[profiles[msg.sender]][0],"None");
-            emit PostCreated(postCount, _postHash, 0, payable(msg.sender),accounts[profiles[msg.sender]][0],"None");
+        else{posts[postCount] = Post(postCount, _postcontent, 0, payable(msg.sender),accounts[profiles[msg.sender]][0],"None");
+            emit PostCreated(postCount, _postcontent, 0, payable(msg.sender),accounts[profiles[msg.sender]][0],"None");
         }
     }
 
@@ -80,13 +79,13 @@ contract BPHCSocial is ERC721URIStorage {
         _post.author.transfer(msg.value);
         _post.likes += 1;
         posts[_id] = _post;
-        emit PostLiked(_id, _post.hash, _post.likes, _post.author);
+        emit PostLiked(_id, _post.content, _post.likes, _post.author);
     }
 
     function getAllPosts() external view returns (Post[] memory _posts) {
         _posts = new Post[](postCount);
-        for (uint256 i = 0; i < _posts.length; i++) {
-            _posts[i] = posts[i + 1];
+        for (uint256 i = postCount; i>0; i--) {
+            _posts[postCount-i] = posts[i];
         }
     }
 
@@ -97,7 +96,7 @@ contract BPHCSocial is ERC721URIStorage {
         for (uint256 i = 0; i < _tokenCount; i++) {
             if (ownerOf(i + 1) == msg.sender) {
                 _ids[currentIndex].id = i + 1;
-                _ids[currentIndex].name = accounts[currentIndex][0];
+                _ids[currentIndex].name = accounts[i+1][0];
                 currentIndex++;
             }
         }
